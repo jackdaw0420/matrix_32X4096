@@ -1,1 +1,1 @@
-# matrix_32X4096
+将TPU_32X4096_addr.sim.rar解压后，在vivado中直接点击run simulation即可运行仿真
