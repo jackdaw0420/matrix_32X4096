@@ -18,8 +18,8 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-//Ë«»º´æ´æ´¢¼ÆËãºÃµÄ32X32Êä³ö¾ØÕóµÄÊı¾İ£¬Í¬Ê±½«Ë³Ğò»¹Ô­ºÃµÄÊı¾İ´æ·Åµ½uramÖĞ
-//µÚÒ»¸ö32*32¾ØÕóÓÃÓÚ½ÓÊÕÕıÔÚ¼ÆËãÊä³öµÄÊı¾İ£¬µÚ¶ş¸öÓÃÓÚ´æ´¢ÉÏÒ»¸öÒÑ¾­¼ÆËãÍê³ÉµÄÊı¾İ¡£Ã¿Ò»¸ö±¸ÓÃ¾ØÕóÖĞµÄÊı¾İÈ«²¿Êä³öºó¾ÍÖ±½ÓÇåÁã
+//åŒç¼“å­˜å­˜å‚¨è®¡ç®—å¥½çš„32X32è¾“å‡ºçŸ©é˜µçš„æ•°æ®ï¼ŒåŒæ—¶å°†é¡ºåºè¿˜åŸå¥½çš„æ•°æ®å­˜æ”¾åˆ°uramä¸­
+//ç¬¬ä¸€ä¸ª32*32çŸ©é˜µç”¨äºæ¥æ”¶æ­£åœ¨è®¡ç®—è¾“å‡ºçš„æ•°æ®ï¼Œç¬¬äºŒä¸ªç”¨äºå­˜å‚¨ä¸Šä¸€ä¸ªå·²ç»è®¡ç®—å®Œæˆçš„æ•°æ®ã€‚æ¯ä¸€ä¸ªå¤‡ç”¨çŸ©é˜µä¸­çš„æ•°æ®å…¨éƒ¨è¾“å‡ºåå°±ç›´æ¥æ¸…é›¶
 
 module write_out_new#(
     parameter ARRAY_SIZE = 32,
@@ -31,33 +31,33 @@ module write_out_new#(
 
 	input [1:0] data_set,
 	input [5:0] matrix_index,
-	input [12:0]cycle_num,
+	input [20:0]cycle_num,
 
 	input signed [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0] quantized_data,
 	
-	input          uram_rd_en,
-	input  [12:0]  uram_rd_addr,
+	input          uram_read_enable,
+	input  [11:0]  uram_rd_addr,
 	
-	output signed  [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0] uram_rd_data//Î´Ö¸¶¨Î»¿í
+	output signed  [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0] uram_rd_data
     );
 
 localparam OUTCOME_WIDTH = 16;
 localparam MAX_INDEX = ARRAY_SIZE - 1;
 localparam DIOGONAL_NUM = 2*ARRAY_SIZE - 1;
-//Ë«»º´æ¾ØÕó
+//åŒç¼“å­˜çŸ©é˜µ
 reg signed [OUTPUT_DATA_WIDTH-1:0] temp_matrix         [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1];
 reg signed [OUTPUT_DATA_WIDTH-1:0] temp_matrix_nx      [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1];
 
 wire signed [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0]  r_quantized_data;
 
-//uram¿ØÖÆĞÅºÅ
+//uramæ§åˆ¶ä¿¡å·
 reg [5:0]                               uram_input_data_cnt;
 reg                                     uram_write_enable;
 reg [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0]  uram_wdata;
 reg [11:0]                              uram_wdata_addr;
 reg [11:0]                              uram_wdata_addr_nx;
 
-//ÒªµÈ´ıµÚÒ»¸ö¾ØÕóÍêÈ«Êä³öºó²ÅÄÜ½«ÍêÈ«ÖØÅÅµÄÊı¾İÊäÈëµ½uramÖĞ£¬quantized_dataÖĞ
+//è¦ç­‰å¾…ç¬¬ä¸€ä¸ªçŸ©é˜µå®Œå…¨è¾“å‡ºåæ‰èƒ½å°†å®Œå…¨é‡æ’çš„æ•°æ®è¾“å…¥åˆ°uramä¸­ï¼Œquantized_dataä¸­
 integer i,j;
 
 assign r_quantized_data = quantized_data;
@@ -75,7 +75,7 @@ always@(posedge clk or negedge srstn)begin
     end
 end
 
-//¸ü¸ÄÁËmatrix_index¼ÆËãÂß¼­£¬Ö»ÔÚµÚÒ»¸öÊı¾İ½ğöÎ¸ó4096´Î¼ÆËãÍê³Éºó£¬²Å¿ªÊ¼ÀÛ¼Ó±íÊ¾¶Ô½ÇÏßÊı¾İµÄÊä³ö£¬·¶Î§£º0-62
+//æ›´æ”¹äº†matrix_indexè®¡ç®—é€»è¾‘ï¼Œåªåœ¨ç¬¬ä¸€ä¸ªæ•°æ®é‡‘é‘«é˜4096æ¬¡è®¡ç®—å®Œæˆåï¼Œæ‰å¼€å§‹ç´¯åŠ è¡¨ç¤ºå¯¹è§’çº¿æ•°æ®çš„è¾“å‡ºï¼ŒèŒƒå›´ï¼š0-62
 always@(*) begin   
     if (cycle_num < 21'd4097) begin // Reset the matrix multiplication results to 0
         for (i = 0; i < ARRAY_SIZE; i = i + 1) 
@@ -83,9 +83,9 @@ always@(*) begin
                 temp_matrix_nx[i][j] = 0;
     end
     else if ((matrix_index < ARRAY_SIZE) && ((cycle_num - 21'd1) % 21'd4096 <= 31)) begin
-        // »¹Ô­ÉÏÈı½ÇµÄ¶Ô½ÇÏßÊä³öÊı¾İ    
+        // è¿˜åŸä¸Šä¸‰è§’çš„å¯¹è§’çº¿è¾“å‡ºæ•°æ®    
         for (i = 0; i < ARRAY_SIZE; i = i + 1) begin
-            for (j = 0; j < ARRAY_SIZE - i; j = j + 1) begin//Ö»±éÀúÉÏÈı½Ç £¨°üÀ¨Ö÷¶Ô½ÇÏß£©
+            for (j = 0; j < ARRAY_SIZE - i; j = j + 1) begin//åªéå†ä¸Šä¸‰è§’ ï¼ˆåŒ…æ‹¬ä¸»å¯¹è§’çº¿ï¼‰
                 if (i + j == matrix_index) begin
                     temp_matrix_nx [i][j] = r_quantized_data[i* OUTCOME_WIDTH +: OUTCOME_WIDTH];
                 end
@@ -93,36 +93,36 @@ always@(*) begin
         end
     end
     else if ((matrix_index >= ARRAY_SIZE) && ((cycle_num - 21'd1) % 21'd4096 > 31) && ((cycle_num - 21'd1) % 21'd4096 <= 62)) begin
-        // »¹Ô­ÏÂÈı½ÇµÄ¶Ô½ÇÏßÊä³öÊı¾İ  
-        for (i = 0; i < ARRAY_SIZE; i = i + 1) begin
-            for (j = ARRAY_SIZE -  i - 1; j < ARRAY_SIZE; j = j + 1) begin//È·±£Ö»±éÀúÏÂÈı½Ç
+        // è¿˜åŸä¸‹ä¸‰è§’çš„å¯¹è§’çº¿è¾“å‡ºæ•°æ®  
+        for (i = 1; i < ARRAY_SIZE; i = i + 1) begin
+            for (j = ARRAY_SIZE - i - 1; j < ARRAY_SIZE; j = j + 1) begin//ç¡®ä¿åªéå†ä¸‹ä¸‰è§’
                 if (i + j == matrix_index) begin
                     temp_matrix_nx [i][j] = r_quantized_data[i* OUTCOME_WIDTH +: OUTCOME_WIDTH];
                 end
             end
         end
     end
-    else if((cycle_num - 21'd95) % 21'd4096 == 0)begin//µ±Íê³ÉÁË32´ÎµÄtemp_matrixÊı¾İÏòuramÖĞÌî³äºó£¬¶Ôtemp_matrix½øĞĞÇåÁã
+    else if((cycle_num - 21'd95) % 21'd4096 == 0)begin//å½“å®Œæˆäº†32æ¬¡çš„temp_matrixæ•°æ®å‘uramä¸­å¡«å……åï¼Œå¯¹temp_matrixè¿›è¡Œæ¸…é›¶
         for(i = 0;i < ARRAY_SIZE;i = i + 1)begin
             for(j = 0;j < ARRAY_SIZE;j = j + 1)begin
                 temp_matrix_nx[i][j] = 0;
             end
         end    
     end
-    else begin//ÔÚÖĞ¼äµÄ¼ÆËãµÄÖÜÆÚÖĞ±£³ÖÎª0
+    else begin//åœ¨ä¸­é—´çš„è®¡ç®—çš„å‘¨æœŸä¸­ä¿æŒä¸º0
         for (i = 0; i < ARRAY_SIZE; i = i + 1) 
             for (j = 0; j < ARRAY_SIZE; j = j + 1) 
                 temp_matrix_nx[i][j] = temp_matrix[i][j];
     end 
 end
 
-//µ±Ò»¸ö32*32²¿·ÖµÄËùÓĞ¼ÆËã½á¹ûÈ«²¿Êä³öµ½temp_matrixÖĞºó£¬Æô¶¯uramµÄĞ´Èë£¬Ò»ĞĞÒ»ĞĞµÄÊäÈë¾ØÕóÊı¾İ
+//å½“ä¸€ä¸ª32*32éƒ¨åˆ†çš„æ‰€æœ‰è®¡ç®—ç»“æœå…¨éƒ¨è¾“å‡ºåˆ°temp_matrixä¸­åï¼Œå¯åŠ¨uramçš„å†™å…¥ï¼Œä¸€è¡Œä¸€è¡Œçš„è¾“å…¥çŸ©é˜µæ•°æ®
 always@(posedge clk or negedge srstn)begin
     if(!srstn)
         uram_input_data_cnt <= 6'b0;
-    else if(((cycle_num - 21'd64) % 21'd4096 <= 30) && cycle_num >= 21'd4096)//ĞèÒª¸ü¸Ä¼ÆËãÂß¼­
+    else if(((cycle_num - 21'd64) % 21'd4096 <= 30) && cycle_num >= 21'd4096)//éœ€è¦æ›´æ”¹è®¡ç®—é€»è¾‘
         uram_input_data_cnt <= uram_input_data_cnt + 6'b1;
-    else if(((cycle_num - 21'd64) % 21'd4096 >= 31) && ((cycle_num - 21'd64) % 21'd4096 <= 4095) && cycle_num >= 21'd4096)//ĞèÒª¸ü¸Ä¼ÆËãÂß¼­
+    else if(((cycle_num - 21'd64) % 21'd4096 >= 31) && ((cycle_num - 21'd64) % 21'd4096 <= 4095) && cycle_num >= 21'd4096)//éœ€è¦æ›´æ”¹è®¡ç®—é€»è¾‘
         uram_input_data_cnt <= 0;
     else 
         uram_input_data_cnt <= uram_input_data_cnt;
@@ -137,15 +137,15 @@ always@(posedge clk or negedge srstn)begin
     end
 end
 
-//µ±temp_matrixÖĞÌî³äÍêÊı¾İºó¾ÍÆô¶¯uramµÄÊı¾İÊäÈëÂß¼­
+//å½“temp_matrixä¸­å¡«å……å®Œæ•°æ®åå°±å¯åŠ¨uramçš„æ•°æ®è¾“å…¥é€»è¾‘
 always@(*)begin
     if(((cycle_num - 21'd64) % 21'd4096 <= 31) && cycle_num >= 21'd4096)begin
         uram_write_enable = 1'b1;
-        uram_wdata_addr_nx = uram_wdata_addr + 12'b1;//Ã¿Ò»¸öaddr´ú±íÒ»ĞĞ32¸öÔªËØ
+        uram_wdata_addr_nx = uram_wdata_addr + 12'b1;//æ¯ä¸€ä¸ªaddrä»£è¡¨ä¸€è¡Œ32ä¸ªå…ƒç´ 
         for (j = 0; j < ARRAY_SIZE; j = j + 1) 
-            uram_wdata[(ARRAY_SIZE-1-j)*OUTPUT_DATA_WIDTH+:OUTPUT_DATA_WIDTH] = temp_matrix[uram_input_data_cnt][j];//½«Êı¾İµ¹ĞòÖØÅÅ£¬ÒòÎª£¨0£¬0£©»á±»´æ´¢ÔÚ×îµÍÎ»
+            uram_wdata[(ARRAY_SIZE-1-j)*OUTPUT_DATA_WIDTH+:OUTPUT_DATA_WIDTH] = temp_matrix[uram_input_data_cnt][j];//å°†æ•°æ®å€’åºé‡æ’ï¼Œå› ä¸ºï¼ˆ0ï¼Œ0ï¼‰ä¼šè¢«å­˜å‚¨åœ¨æœ€ä½ä½
     end
-    else if(((cycle_num - 21'd64) % 21'd4096 > 31) && ((cycle_num - 21'd64) % 21'd4096 <= 4095) && cycle_num >= 21'd4096)begin//ĞèÒª¸ü¸Ä¼ÆËãÂß¼­
+    else if(((cycle_num - 21'd64) % 21'd4096 > 31) && ((cycle_num - 21'd64) % 21'd4096 <= 4095) && cycle_num >= 21'd4096)begin//éœ€è¦æ›´æ”¹è®¡ç®—é€»è¾‘
         uram_wdata_addr_nx = uram_wdata_addr;
         uram_write_enable = 1'b0;
     end
@@ -157,94 +157,94 @@ always@(*)begin
 end
     
 xpm_memory_sdpram #(
-    // µØÖ·ÅäÖÃ - ĞèÒªÄÜÑ°Ö·4096¸öÎ»ÖÃ
-    .ADDR_WIDTH_A(12),      // ¶Ë¿ÚAµØÖ·Ïß¿í¶È£º12Î»£¬¿ÉÑ°Ö·0-4095
-    .ADDR_WIDTH_B(12),      // ¶Ë¿ÚBµØÖ·Ïß¿í¶È£º12Î»£¬¿ÉÑ°Ö·0-4095
+    // åœ°å€é…ç½® - éœ€è¦èƒ½å¯»å€4096ä¸ªä½ç½®
+    .ADDR_WIDTH_A(12),      // ç«¯å£Aåœ°å€çº¿å®½åº¦ï¼š12ä½ï¼Œå¯å¯»å€0-4095
+    .ADDR_WIDTH_B(12),      // ç«¯å£Båœ°å€çº¿å®½åº¦ï¼š12ä½ï¼Œå¯å¯»å€0-4095
     
-    // ĞÔÄÜÓë¹¦ºÄ
-    .AUTO_SLEEP_TIME(0),    // ½ûÓÃ×Ô¶¯ĞİÃß
+    // æ€§èƒ½ä¸åŠŸè€—
+    .AUTO_SLEEP_TIME(0),    // ç¦ç”¨è‡ªåŠ¨ä¼‘çœ 
     
-    // ×Ö½ÚĞ´ÅäÖÃ - ÖØÒª£¡ÒòÎªURAM²»Ö§³ÖÕæÕıµÄ×Ö½ÚĞ´
-    .BYTE_WRITE_WIDTH_A(512), // ÉèÎªÓëĞ´Êı¾İ¿í¶ÈÏàÍ¬£¬±íÊ¾°´×Ö£¨512Î»£©Ğ´Èë
+    // å­—èŠ‚å†™é…ç½® - é‡è¦ï¼å› ä¸ºURAMä¸æ”¯æŒçœŸæ­£çš„å­—èŠ‚å†™
+    .BYTE_WRITE_WIDTH_A(512), // è®¾ä¸ºä¸å†™æ•°æ®å®½åº¦ç›¸åŒï¼Œè¡¨ç¤ºæŒ‰å­—ï¼ˆ512ä½ï¼‰å†™å…¥
     
-    // ¼Ü¹¹ÅäÖÃ
-    .CASCADE_HEIGHT(0),     // ²»¼¶Áª¶à¸öURAM
-    .CLOCKING_MODE("common_clock"), // ¹«¹²Ê±ÖÓÄ£Ê½
+    // æ¶æ„é…ç½®
+    .CASCADE_HEIGHT(0),     // ä¸çº§è”å¤šä¸ªURAM
+    .CLOCKING_MODE("common_clock"), // å…¬å…±æ—¶é’Ÿæ¨¡å¼
     
-    // ¾À´í¹¦ÄÜ
-    .ECC_MODE("no_ecc"),    // ²»ÆôÓÃECC£¨URAM±¾ÉíÓĞĞ£ÑéÎ»£¬µ«ÕâÀï²»ÆôÓÃECC¹¦ÄÜ£©
+    // çº é”™åŠŸèƒ½
+    .ECC_MODE("no_ecc"),    // ä¸å¯ç”¨ECCï¼ˆURAMæœ¬èº«æœ‰æ ¡éªŒä½ï¼Œä½†è¿™é‡Œä¸å¯ç”¨ECCåŠŸèƒ½ï¼‰
     
-    // ³õÊ¼»¯ÅäÖÃ
-    .MEMORY_INIT_FILE("none"),  // ÎŞ³õÊ¼»¯ÎÄ¼ş
-    .MEMORY_INIT_PARAM("0"),    // ÎŞ³õÊ¼»¯²ÎÊı
+    // åˆå§‹åŒ–é…ç½®
+    .MEMORY_INIT_FILE("none"),  // æ— åˆå§‹åŒ–æ–‡ä»¶
+    .MEMORY_INIT_PARAM("0"),    // æ— åˆå§‹åŒ–å‚æ•°
     
-    // ÓÅ»¯Ñ¡Ïî
-    .MEMORY_OPTIMIZATION("true"), // ÆôÓÃÄÚ´æÓÅ»¯
-    .MEMORY_PRIMITIVE("ultra"),   // ±ØĞëÉèÎª"ultra"ÒÔÊ¹ÓÃURAM
+    // ä¼˜åŒ–é€‰é¡¹
+    .MEMORY_OPTIMIZATION("true"), // å¯ç”¨å†…å­˜ä¼˜åŒ–
+    .MEMORY_PRIMITIVE("ultra"),   // å¿…é¡»è®¾ä¸º"ultra"ä»¥ä½¿ç”¨URAM
     
-    // ÈİÁ¿ÅäÖÃ - ¹Ø¼üĞŞ¸Ä£¡
-    .MEMORY_SIZE(2097152),  // ×Ü´æ´¢ÈİÁ¿£º4096 ¡Á 512 = 2,097,152Î»
+    // å®¹é‡é…ç½® - å…³é”®ä¿®æ”¹ï¼
+    .MEMORY_SIZE(2097152),  // æ€»å­˜å‚¨å®¹é‡ï¼š4096 Ã— 512 = 2,097,152ä½
     
-    // ¿ØÖÆÓëÏûÏ¢
-    .MESSAGE_CONTROL(0),    // ½ûÓÃÅö×²¾¯¸æ
+    // æ§åˆ¶ä¸æ¶ˆæ¯
+    .MESSAGE_CONTROL(0),    // ç¦ç”¨ç¢°æ’è­¦å‘Š
     
-    // ¶Ë¿ÚB¶ÁÈ¡ÅäÖÃ
-    .READ_DATA_WIDTH_B(512),  // ¶ÁÈ¡Êı¾İ¿í¶È£º512Î»
-    .READ_LATENCY_B(2),      // ¶ÁÈ¡ÑÓ³Ù£ºURAMÍ¨³£ÊÇ2¸öÊ±ÖÓÖÜÆÚ
-    .READ_RESET_VALUE_B("0"), // ¶ÁÈ¡¸´Î»Öµ
+    // ç«¯å£Bè¯»å–é…ç½®
+    .READ_DATA_WIDTH_B(512),  // è¯»å–æ•°æ®å®½åº¦ï¼š512ä½
+    .READ_LATENCY_B(2),      // è¯»å–å»¶è¿Ÿï¼šURAMé€šå¸¸æ˜¯2ä¸ªæ—¶é’Ÿå‘¨æœŸ
+    .READ_RESET_VALUE_B("0"), // è¯»å–å¤ä½å€¼
     
-    // ¸´Î»Ä£Ê½
-    .RST_MODE_A("SYNC"),    // Í¬²½¸´Î»
-    .RST_MODE_B("SYNC"),    // Í¬²½¸´Î»
+    // å¤ä½æ¨¡å¼
+    .RST_MODE_A("SYNC"),    // åŒæ­¥å¤ä½
+    .RST_MODE_B("SYNC"),    // åŒæ­¥å¤ä½
     
-    // ·ÂÕæÓëÑéÖ¤
-    .SIM_ASSERT_CHK(0),     // ½ûÓÃ·ÂÕæ¶ÏÑÔ
-    .USE_EMBEDDED_CONSTRAINT(0), // ½ûÓÃÇ¶ÈëÊ½Ô¼Êø
+    // ä»¿çœŸä¸éªŒè¯
+    .SIM_ASSERT_CHK(0),     // ç¦ç”¨ä»¿çœŸæ–­è¨€
+    .USE_EMBEDDED_CONSTRAINT(0), // ç¦ç”¨åµŒå…¥å¼çº¦æŸ
     
-    // ³õÊ¼»¯Ïà¹Ø
-    .USE_MEM_INIT(1),       // ÆôÓÃÄÚ´æ³õÊ¼»¯
-    .USE_MEM_INIT_MMI(0),   // ½ûÓÃMMIÎÄ¼ş
+    // åˆå§‹åŒ–ç›¸å…³
+    .USE_MEM_INIT(1),       // å¯ç”¨å†…å­˜åˆå§‹åŒ–
+    .USE_MEM_INIT_MMI(0),   // ç¦ç”¨MMIæ–‡ä»¶
     
-    // ¹¦ºÄ¹ÜÀí
-    .WAKEUP_TIME("disable_sleep"), // ½ûÓÃĞİÃß
+    // åŠŸè€—ç®¡ç†
+    .WAKEUP_TIME("disable_sleep"), // ç¦ç”¨ä¼‘çœ 
     
-    // ¶Ë¿ÚAĞ´ÈëÅäÖÃ
-    .WRITE_DATA_WIDTH_A(512),  // Ğ´ÈëÊı¾İ¿í¶È£º512Î»
-    .WRITE_MODE_B("read_first"), // Ğ´Ä£Ê½£º"read_first"±íÊ¾Ğ´Ê±ÏÈ¶ÁÈ¡¾ÉÖµ
-    .WRITE_PROTECT(1)         // Ğ´±£»¤£ºÍ¨¹ıENºÍWEAĞÅºÅ¿ØÖÆ
+    // ç«¯å£Aå†™å…¥é…ç½®
+    .WRITE_DATA_WIDTH_A(512),  // å†™å…¥æ•°æ®å®½åº¦ï¼š512ä½
+    .WRITE_MODE_B("read_first"), // å†™æ¨¡å¼ï¼š"read_first"è¡¨ç¤ºå†™æ—¶å…ˆè¯»å–æ—§å€¼
+    .WRITE_PROTECT(1)         // å†™ä¿æŠ¤ï¼šé€šè¿‡ENå’ŒWEAä¿¡å·æ§åˆ¶
 )
 xpm_memory_sdpram_inst (
-    // Êä³ö¶Ë¿Ú
-    .dbiterrb(),           // Î´Ê¹ÓÃ
-    .sbiterrb(),           // Î´Ê¹ÓÃ
-    .doutb(uram_rd_data),  // ¶ÁÈ¡Êı¾İÊä³ö£º512Î»
+    // è¾“å‡ºç«¯å£
+    .dbiterrb(),           // æœªä½¿ç”¨
+    .sbiterrb(),           // æœªä½¿ç”¨
+    .doutb(uram_rd_data),  // è¯»å–æ•°æ®è¾“å‡ºï¼š512ä½
     
-    // ÊäÈë¶Ë¿Ú
-    .addra(uram_wdata_addr), // Ğ´ÈëµØÖ·£º12Î»
-    .addrb(rd_addr),       // ¶ÁÈ¡µØÖ·£º12Î»
-    .clka(clk),          // Ê±ÖÓ
-    .clkb(clk),          // Ê±ÖÓ£¨¹«¹²Ê±ÖÓÄ£Ê½£©
-    .dina(uram_wdata),           // Ğ´ÈëÊı¾İÊäÈë£º512Î»
+    // è¾“å…¥ç«¯å£
+    .addra(uram_wdata_addr), // å†™å…¥åœ°å€ï¼š12ä½
+    .addrb(uram_rd_addr),       // è¯»å–åœ°å€ï¼š12ä½
+    .clka(clk),          // æ—¶é’Ÿ
+    .clkb(clk),          // æ—¶é’Ÿï¼ˆå…¬å…±æ—¶é’Ÿæ¨¡å¼ï¼‰
+    .dina(uram_wdata),           // å†™å…¥æ•°æ®è¾“å…¥ï¼š512ä½
     
-    // Ê¹ÄÜĞÅºÅ
-    .ena(uram_write_enable),            // ¶Ë¿ÚAÊ¹ÄÜ
-    .enb(uram_rd_en),            // ¶Ë¿ÚBÊ¹ÄÜ
+    // ä½¿èƒ½ä¿¡å·
+    .ena(uram_write_enable),            // ç«¯å£Aä½¿èƒ½
+    .enb(uram_read_enable),            // ç«¯å£Bä½¿èƒ½
     
-    // ECC´íÎó×¢Èë
-    .injectdbiterra(1'b0), // ½ûÓÃ
-    .injectsbiterra(1'b0), // ½ûÓÃ
+    // ECCé”™è¯¯æ³¨å…¥
+    .injectdbiterra(1'b0), // ç¦ç”¨
+    .injectsbiterra(1'b0), // ç¦ç”¨
     
-    // Êä³ö¼Ä´æÆ÷¿ØÖÆ
-    .regceb(1'b1),         // Êä³ö¼Ä´æÆ÷Ê¹ÄÜ
+    // è¾“å‡ºå¯„å­˜å™¨æ§åˆ¶
+    .regceb(1'b1),         // è¾“å‡ºå¯„å­˜å™¨ä½¿èƒ½
     
-    // ¸´Î»ĞÅºÅ
-    .rstb(!srstn),       // ¸´Î»
+    // å¤ä½ä¿¡å·
+    .rstb(!srstn),       // å¤ä½
     
-    // µÍ¹¦ºÄ¿ØÖÆ
-    .sleep(1'b0),          // ×¢Òâ£º±ØĞëÎª0£¬·ñÔòURAM½øÈëĞİÃß×´Ì¬£¡
+    // ä½åŠŸè€—æ§åˆ¶
+    .sleep(1'b0),          // æ³¨æ„ï¼šå¿…é¡»ä¸º0ï¼Œå¦åˆ™URAMè¿›å…¥ä¼‘çœ çŠ¶æ€ï¼
     
-    // Ğ´Ê¹ÄÜĞÅºÅ
-    .wea(uram_write_enable)              // Ğ´Ê¹ÄÜ£º1Î»¿í£¬¿ØÖÆÕû¸ö512Î»Ğ´Èë
+    // å†™ä½¿èƒ½ä¿¡å·
+    .wea(uram_write_enable)              // å†™ä½¿èƒ½ï¼š1ä½å®½ï¼Œæ§åˆ¶æ•´ä¸ª512ä½å†™å…¥
 );
 
 endmodule
