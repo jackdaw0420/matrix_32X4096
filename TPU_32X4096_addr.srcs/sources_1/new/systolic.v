@@ -34,25 +34,25 @@ module systolic #(
 );
 
 // Local parameters for controlling matrix multiplication flow
-localparam OUTCOME_WIDTH = DATA_WIDTH + DATA_WIDTH + 12; // ³Ë·¨½á¹ûÎ»¿í(8+8+12=28)
+localparam OUTCOME_WIDTH = DATA_WIDTH + DATA_WIDTH + 12; // ä¹˜æ³•ç»“æœä½å®½(8+8+12=28)
 
 // Internal registers
-reg signed [OUTCOME_WIDTH-1:0] matrix_mul_2D [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1]; // matrix_mul_2D_nxµÄ»ØÌî½á¹û¾ØÕó£¬ÓÃÓÚ½ÓÊÕmatrix_mul_2D_nxÖĞµÄÏà³ËÊı¾İ
-reg signed [OUTCOME_WIDTH-1:0] matrix_mul_2D_nx [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1]; //Ö±½ÓĞ´ÈëÊı¾İºÍÈ¨ÖØÏà³ËµÄ½á¹û£¨×éºÏÂß¼­¼ÆËã£©
-reg signed [DATA_WIDTH-1:0] data_queue [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1];         //32 * 32¾ØÕó Ã¿¸öÔªËØ8Î» Data queue for inputs
-reg signed [DATA_WIDTH-1:0] weight_queue [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1];       //32 * 32¾ØÕó Ã¿¸öÔªËØ8Î» Weight queue for inputs
-reg signed [DATA_WIDTH+DATA_WIDTH-1:0] mul_result;  // 16Î»Êä³öÊı¾İ Temporary variable for holding multiplication result
+reg signed [OUTCOME_WIDTH-1:0] matrix_mul_2D [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1]; // matrix_mul_2D_nxçš„å›å¡«ç»“æœçŸ©é˜µï¼Œç”¨äºæ¥æ”¶matrix_mul_2D_nxä¸­çš„ç›¸ä¹˜æ•°æ®
+reg signed [OUTCOME_WIDTH-1:0] matrix_mul_2D_nx [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1]; //ç›´æ¥å†™å…¥æ•°æ®å’Œæƒé‡ç›¸ä¹˜çš„ç»“æœï¼ˆç»„åˆé€»è¾‘è®¡ç®—ï¼‰
+reg signed [DATA_WIDTH-1:0] data_queue [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1];         //32 * 32çŸ©é˜µ æ¯ä¸ªå…ƒç´ 8ä½ Data queue for inputs
+reg signed [DATA_WIDTH-1:0] weight_queue [0:ARRAY_SIZE-1][0:ARRAY_SIZE-1];       //32 * 32çŸ©é˜µ æ¯ä¸ªå…ƒç´ 8ä½ Weight queue for inputs
+reg signed [DATA_WIDTH+DATA_WIDTH-1:0] mul_result;  // 16ä½è¾“å‡ºæ•°æ® Temporary variable for holding multiplication result
 
-// ÇåÁã¿ØÖÆ¼Ä´æÆ÷
-reg         clear_enable;                   // ÇåÁãÊ¹ÄÜĞÅºÅ
-reg [5:0]   clear_diag;               // ĞèÒªÇåÁãµÄ¶Ô½ÇÏß±àºÅ
+// æ¸…é›¶æ§åˆ¶å¯„å­˜å™¨
+reg         clear_enable;                   // æ¸…é›¶ä½¿èƒ½ä¿¡å·
+reg [5:0]   clear_diag;               // éœ€è¦æ¸…é›¶çš„å¯¹è§’çº¿ç¼–å·
 reg [6:0]   clear_cnt;
 
 integer i, j;                        // Loop indices for iteration
 
-/*Ã¿¸öSRAMÊäÈë32Î»£¬°üº¬4¸ö8Î»È¨ÖØ
-8¸öSRAMÊäÈë¹²Ìá¹©32¸öÈ¨ÖØ£¨8¡Á4=32£©
-È¨ÖØÔÚÕóÁĞÖĞÑØĞĞÏòÏÂÖğĞĞÒÆÎ»*/
+/*æ¯ä¸ªSRAMè¾“å…¥32ä½ï¼ŒåŒ…å«4ä¸ª8ä½æƒé‡
+8ä¸ªSRAMè¾“å…¥å…±æä¾›32ä¸ªæƒé‡ï¼ˆ8Ã—4=32ï¼‰
+æƒé‡åœ¨é˜µåˆ—ä¸­æ²¿è¡Œå‘ä¸‹é€è¡Œç§»ä½*/
 always @(posedge clk) begin
     if (~rst_n) begin // On reset, initialize the queues to 0
         for (i = 0; i < ARRAY_SIZE; i = i + 1) begin
@@ -64,8 +64,8 @@ always @(posedge clk) begin
     end
     else if (alu_start) begin
         for (i = 0; i < 4; i = i + 1) begin  
-            weight_queue[0][i] <= sram_rdata_w0[31-8*i-:8];//32Î»Êı¾İ£¬°üº¬4¸ö8Î»µÄÈ¨ÖØÊı¾İ£¬µÚ0ĞĞ´ÓÊäÈë¼ÓÔØÈ¨ÖØ  0-3ÁĞ
-            weight_queue[0][i+4] <= sram_rdata_w1[31-8*i-:8];// 4-7ÁĞ
+            weight_queue[0][i] <= sram_rdata_w0[31-8*i-:8];//32ä½æ•°æ®ï¼ŒåŒ…å«4ä¸ª8ä½çš„æƒé‡æ•°æ®ï¼Œç¬¬0è¡Œä»è¾“å…¥åŠ è½½æƒé‡  0-3åˆ—
+            weight_queue[0][i+4] <= sram_rdata_w1[31-8*i-:8];// 4-7åˆ—
             weight_queue[0][i+8] <= sram_rdata_w2[31-8*i-:8];
             weight_queue[0][i+12] <= sram_rdata_w3[31-8*i-:8];
             weight_queue[0][i+16] <= sram_rdata_w4[31-8*i-:8];
@@ -73,15 +73,15 @@ always @(posedge clk) begin
             weight_queue[0][i+24] <= sram_rdata_w6[31-8*i-:8];
             weight_queue[0][i+28] <= sram_rdata_w7[31-8*i-:8];
         end
-        for (i = 1; i < ARRAY_SIZE; i = i + 1)// µÚ1-31ĞĞ´ÓÉÏÒ»ĞĞÒÆÎ»
+        for (i = 1; i < ARRAY_SIZE; i = i + 1)// ç¬¬1-31è¡Œä»ä¸Šä¸€è¡Œç§»ä½
             for (j = 0; j < ARRAY_SIZE; j = j + 1)
-                weight_queue[i][j] <= weight_queue[i-1][j];//32¸öÖÜÆÚÍêÈ«Ìî³äÈ¨ÖØ²ÎÊı
+                weight_queue[i][j] <= weight_queue[i-1][j];//32ä¸ªå‘¨æœŸå®Œå…¨å¡«å……æƒé‡å‚æ•°
                 
         // Shift data queue
-        /* Ã¿¸öSRAMÊäÈë32Î»£¬°üº¬4¸ö8Î»Êı¾İ
-        8¸öSRAMÊäÈë¹²Ìá¹©32¸öÊı¾İ£¨8¡Á4=32£©
-        Êı¾İÔÚÕóÁĞÖĞÑØÁĞÏòÓÒÖğÁĞÒÆÎ»*/
-        for (i = 0; i < 4; i = i + 1) begin  // µÚ0ÁĞ´ÓÊäÈë¼ÓÔØÊı¾İ 0-3ĞĞ
+        /* æ¯ä¸ªSRAMè¾“å…¥32ä½ï¼ŒåŒ…å«4ä¸ª8ä½æ•°æ®
+        8ä¸ªSRAMè¾“å…¥å…±æä¾›32ä¸ªæ•°æ®ï¼ˆ8Ã—4=32ï¼‰
+        æ•°æ®åœ¨é˜µåˆ—ä¸­æ²¿åˆ—å‘å³é€åˆ—ç§»ä½*/
+        for (i = 0; i < 4; i = i + 1) begin  // ç¬¬0åˆ—ä»è¾“å…¥åŠ è½½æ•°æ® 0-3è¡Œ
             data_queue[i][0] <= sram_rdata_d0[31-8*i-:8];
             data_queue[i+4][0] <= sram_rdata_d1[31-8*i-:8];
             data_queue[i+8][0] <= sram_rdata_d2[31-8*i-:8];
@@ -91,9 +91,9 @@ always @(posedge clk) begin
             data_queue[i+24][0] <= sram_rdata_d6[31-8*i-:8];
             data_queue[i+28][0] <= sram_rdata_d7[31-8*i-:8];
         end
-        for (i = 0; i < ARRAY_SIZE; i = i + 1)// µÚ1-31ÁĞ´Ó×ó²àÒÆÎ»
+        for (i = 0; i < ARRAY_SIZE; i = i + 1)// ç¬¬1-31åˆ—ä»å·¦ä¾§ç§»ä½
             for (j = 1; j < ARRAY_SIZE; j = j + 1)
-                data_queue[i][j] <= data_queue[i][j-1];//32¸öÖÜÆÚÍêÈ«Ìî³äÊı¾İ²ÎÊı
+                data_queue[i][j] <= data_queue[i][j-1];//32ä¸ªå‘¨æœŸå®Œå…¨å¡«å……æ•°æ®å‚æ•°
     end
 end
 
@@ -111,13 +111,13 @@ always @(posedge clk) begin
     end
 end
 
-// ¸ü¸ÄÁËmatrix_index¼ÆËãÂß¼­£¬Ö»ÔÚµÚÒ»¸öÊı¾İ½ğöÎ¸ó4096´Î¼ÆËãÍê³Éºó£¬²Å¿ªÊ¼ÀÛ¼Ó±íÊ¾¶Ô½ÇÏßÊı¾İµÄÊä³ö£¬·¶Î§£º0-62
+// æ›´æ”¹äº†matrix_indexè®¡ç®—é€»è¾‘ï¼Œåªåœ¨ç¬¬ä¸€ä¸ªæ•°æ®è¿›è¡Œè¿‡4096æ¬¡è®¡ç®—å®Œæˆåï¼Œæ‰å¼€å§‹ç´¯åŠ è¡¨ç¤ºå¯¹è§’çº¿æ•°æ®çš„è¾“å‡ºï¼ŒèŒƒå›´ï¼š0-62
 always@(*) begin
     if (alu_start) begin
         for (i = 0; i < ARRAY_SIZE; i = i + 1) begin
             for (j = 0; j < ARRAY_SIZE; j = j + 1) begin
                 if (cycle_num >= 1 && (i + j) <= (cycle_num - 1)) begin
-                    // ÀÛ¼ÓÄ£Ê½
+                    // ç´¯åŠ æ¨¡å¼
                     mul_result = weight_queue[i][j] * data_queue[i][j];
                     matrix_mul_2D_nx[i][j] = matrix_mul_2D[i][j] + { {12{mul_result[15]}}, mul_result };
                 end
@@ -128,16 +128,16 @@ always@(*) begin
                 else begin
                     matrix_mul_2D_nx[i][j] = matrix_mul_2D[i][j];
                 end
-                // ½øĞĞÇåÁã
+                // è¿›è¡Œæ¸…é›¶
                 if (clear_enable && cycle_num >= 21'd4097) begin
                     if (matrix_index < ARRAY_SIZE) begin
-                        // ÉÏÈı½ÇÇåÁãÌõ¼ş
+                        // ä¸Šä¸‰è§’æ¸…é›¶æ¡ä»¶
                         if (j < ARRAY_SIZE - i && (i + j) == clear_diag) begin
                             matrix_mul_2D_nx[i][j] = 0;
                         end
                     end
                     else begin
-                        // ÏÂÈı½ÇÇåÁãÌõ¼ş
+                        // ä¸‹ä¸‰è§’æ¸…é›¶æ¡ä»¶
                         if (j >= ARRAY_SIZE - i - 1 && (i + j) == clear_diag) begin
                             matrix_mul_2D_nx[i][j] = 0;
                         end
@@ -155,26 +155,26 @@ always@(*) begin
     end
 end
 
-//¸ü¸ÄÁËmatrix_index¼ÆËãÂß¼­£¬Ö»ÔÚµÚÒ»¸öÊı¾İ½ğöÎ¸ó4096´Î¼ÆËãÍê³Éºó£¬²Å¿ªÊ¼ÀÛ¼Ó±íÊ¾¶Ô½ÇÏßÊı¾İµÄÊä³ö£¬·¶Î§£º0-62
+//æ›´æ”¹äº†matrix_indexè®¡ç®—é€»è¾‘ï¼Œåªåœ¨ç¬¬ä¸€ä¸ªæ•°æ®è¿›è¡Œè¿‡4096æ¬¡è®¡ç®—å®Œæˆåï¼Œæ‰å¼€å§‹ç´¯åŠ è¡¨ç¤ºå¯¹è§’çº¿æ•°æ®çš„è¾“å‡ºï¼ŒèŒƒå›´ï¼š0-62
 always@(*) begin   
-    // ³õÊ¼»¯Êä³öÎª0
+    // åˆå§‹åŒ–è¾“å‡ºä¸º0
     for (i = 0; i < ARRAY_SIZE * OUTCOME_WIDTH; i = i + 1)begin
         mul_outcome[i] = 0;   
     end
-    if (matrix_index <= ARRAY_SIZE) begin//µ±matrix_index < ARRAY_SIZEÊ±£¬ĞèÒªÊä³öµÄÊÇÏÂÈı½ÇµÄÊı¾İ£¬ĞèÒªÓ³Éäµ½ÏÂÈı½Ç
-        // Êä³öÉÏÈı½ÇµÄ¶Ô½ÇÏß  
+    if (matrix_index < ARRAY_SIZE) begin//å½“matrix_index < ARRAY_SIZEæ—¶ï¼Œéœ€è¦è¾“å‡ºçš„æ˜¯ä¸‹ä¸‰è§’çš„æ•°æ®ï¼Œéœ€è¦æ˜ å°„åˆ°ä¸‹ä¸‰è§’
+        // è¾“å‡ºä¸Šä¸‰è§’çš„å¯¹è§’çº¿  
         for (i = 0; i < ARRAY_SIZE; i = i + 1) begin
-            for (j = 0; j < ARRAY_SIZE - i; j = j + 1) begin//Ö»±éÀúÉÏÈı½Ç£¨°üÀ¨Ö÷¶Ô½ÇÏß£©
+            for (j = 0; j < ARRAY_SIZE - i; j = j + 1) begin//åªéå†ä¸Šä¸‰è§’ï¼ˆåŒ…æ‹¬ä¸»å¯¹è§’çº¿ï¼‰
                 if (i + j == matrix_index) begin
                     mul_outcome[i* OUTCOME_WIDTH +: OUTCOME_WIDTH] = matrix_mul_2D[i][j];
                 end
             end
         end
     end
-    else if ((matrix_index > ARRAY_SIZE)) begin//ÓÉ·ÂÕæµÄµ½£¬µ±cycle_numÎª4097Ê±£¬matrix_indexÎª32£¬Òò´ËÒªÓ³Éäµ½ÉÏÈı½ÇÊä³ö
-        // Êä³öÏÂÈı½ÇµÄ¶Ô½ÇÏß  
-        for (i = 0; i < ARRAY_SIZE; i = i + 1) begin
-            for (j = ARRAY_SIZE - i - 1; j < ARRAY_SIZE; j = j + 1) begin//Ö»±éÀúÉÏÈı½Ç£¨°üÀ¨Ö÷¶Ô½ÇÏß£©
+    else if ((matrix_index >= ARRAY_SIZE)) begin//ç”±ä»¿çœŸçš„åˆ°ï¼Œå½“cycle_numä¸º4097æ—¶ï¼Œmatrix_indexä¸º32ï¼Œå› æ­¤è¦æ˜ å°„åˆ°ä¸Šä¸‰è§’è¾“å‡º
+        // è¾“å‡ºä¸‹ä¸‰è§’çš„å¯¹è§’çº¿  
+        for (i = 1; i < ARRAY_SIZE; i = i + 1) begin
+            for (j = ARRAY_SIZE - i; j < ARRAY_SIZE; j = j + 1) begin//åªéå†ä¸Šä¸‰è§’ï¼ˆåŒ…æ‹¬ä¸»å¯¹è§’çº¿ï¼‰
                 if (i + j == matrix_index) begin
                     mul_outcome[i * OUTCOME_WIDTH +: OUTCOME_WIDTH] = matrix_mul_2D[i][j];
                 end
@@ -184,7 +184,7 @@ always@(*) begin
 end
 
 always@(*)begin
-    if((cycle_num >= 21'd4097) && ((cycle_num - 21'd4097) % 21'd4096 <= 62))begin//clear_enableÀ­¸ßµÄÌõ¼şºÍsystolliÊä³öµÄÌõ¼şÊÇÒ»ÑùµÄ£¬
+    if((cycle_num >= 21'd4097) && ((cycle_num - 21'd4097) % 21'd4096 <= 62))begin//clear_enableæ‹‰é«˜çš„æ¡ä»¶å’Œsystolliè¾“å‡ºçš„æ¡ä»¶æ˜¯ä¸€æ ·çš„ï¼Œ
         if(matrix_index < ARRAY_SIZE)begin
             clear_enable = 1;
             clear_diag = matrix_index;
