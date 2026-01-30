@@ -10,10 +10,10 @@
     input srstn,                             // Asynchronous reset signal (active low)
     input tpu_start,                         // Start signal for TPU addr_serial_num
     input uram_rd_en,
-    input [12:0] uram_rd_addr,
+    input [11:0] uram_rd_addr,
     
     // Input data for weights and data from eight SRAMs
-    input [SRAM_DATA_WIDTH-1:0] sram_rdata_w0,//32Œª»®÷ÿ ˝æ›
+    input [SRAM_DATA_WIDTH-1:0] sram_rdata_w0,//32‰ΩçÊùÉÈáçÊï∞ÊçÆ
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_w1,
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_w2,
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_w3,
@@ -22,7 +22,7 @@
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_w6,
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_w7,
     
-    input [SRAM_DATA_WIDTH-1:0] sram_rdata_d0,//32Œª ‰»Î ˝æ›
+    input [SRAM_DATA_WIDTH-1:0] sram_rdata_d0,//32‰ΩçËæìÂÖ•Êï∞ÊçÆ
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_d1,
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_d2,
     input [SRAM_DATA_WIDTH-1:0] sram_rdata_d3,
@@ -39,16 +39,16 @@
     output [20:0]                               cycle_num,   // Number of cycles
     output [5:0]                                matrix_index, // Current matrix index
     
-    output                                      uram_rd_data
+    output signed  [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0] uram_rd_data
 );
 
 // Local parameter for original data width
 localparam ORI_WIDTH = DATA_WIDTH + DATA_WIDTH + 12; // Width of the original data including additional bits
-//ORI_WIDTH£∫21Œª
+//ORI_WIDTHÔºö21‰Ωç
 // Internal signals
 wire [6:0] addr_serial_num;                              // Serial address for selection
-wire signed [ARRAY_SIZE*ORI_WIDTH-1:0] ori_data;       //672Œª ˝æ›£¨ Original data for quantization
-wire signed [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0] quantized_data; // 512Œª ˝æ›£¨Quantized output data
+wire signed [ARRAY_SIZE*ORI_WIDTH-1:0] ori_data;       //672‰ΩçÊï∞ÊçÆÔºå Original data for quantization
+wire signed [ARRAY_SIZE*OUTPUT_DATA_WIDTH-1:0] quantized_data; // 512‰ΩçÊï∞ÊçÆÔºåQuantized output data
 
 // Systolic control signals
 wire alu_start;                                        // ALU start signal                               
@@ -186,10 +186,10 @@ write_out_new#(
                            
 	.quantized_data        (quantized_data),	                      
     
-    .uram_rd_en            (uram_rd_en),
+    .uram_read_enable      (uram_rd_en),
 	.uram_rd_addr          (uram_rd_addr),
 	                 
-	.uram_rd_data          (uram_rd_data) //Œ¥÷∏∂®ŒªøÌ       
+	.uram_rd_data          (uram_rd_data) 
 );
 
 endmodule
